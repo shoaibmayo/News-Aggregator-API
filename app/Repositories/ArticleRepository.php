@@ -34,24 +34,25 @@ class ArticleRepository implements ArticleRepositoryInterface
             return $query->paginate($pagination);
         });
     }
-    public function userPreferences(Request $request)
+    public function userPreferences($preference)
     {
-        $preferences = $request->input('preferences'); 
+        $preferences = json_decode($preference);
         $cacheKey = 'articles_preferences_' . md5(json_encode($preferences));
-        $articles = Cache::remember($cacheKey, 60 * 10, function () use ($preferences) {
+        $articles = Cache::remember($cacheKey, now()->addMinutes(30), function () use ($preferences) {
             $query = Article::query();
-            if (!empty($preferences['sources'])) {
-                $query->whereIn('source', $preferences['sources']);
+            if (!empty($preferences->sources[0])) {
+                
+                $query->whereIn('source', $preferences->sources);
             }
-            if (!empty($preferences['categories'])) {
-                $query->whereIn('category', $preferences['categories']);
+            if (!empty($preferences->categories[0])) {
+                $query->whereIn('category', $preferences->categories);
             }
-            if (!empty($preferences['authors'])) {
-                $query->whereIn('author', $preferences['authors']);
+            if (!empty($preferences->authors[0])) {
+                $query->whereIn('author', $preferences->authors);
             }
             return $query->paginate(10);
         });
-    
+        
         return response()->json($articles);
     }
 
