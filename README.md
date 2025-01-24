@@ -15,7 +15,7 @@ This project uses Docker to set up a PHP development environment with Apache. Th
    If you haven't already, clone the repository to your local machine:
 
    ```bash
-   git clone https://github.com/shoaib7895/News-Aggregator-API.git
+   git clone https://github.com/shoaibmayo/News-Aggregator-API.git
    cd News-Aggregator-API
    cp .env.example .env
 
