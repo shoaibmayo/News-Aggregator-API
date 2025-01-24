@@ -56,4 +56,9 @@ This project uses Docker to set up a PHP development environment with Apache. Th
 
 
 # API Documentation
+**Run Command Publish Documentation** 
+  To Publish Documentation, run the following command:
+     ```bash
+     docker-compose exec laravelapp php artisan l5-swagger:generate
+     ```
 For API documentation, including interactive API documentation and endpoint details, please visit http://localhost:8003/api/documentation after starting the Docker environment. This link points to the Swagger documentation hosted within the Docker container.   
