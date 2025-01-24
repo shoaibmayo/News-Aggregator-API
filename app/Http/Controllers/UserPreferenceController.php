@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\UserPreference;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Cache;
+use App\Repositories\UserPreferenceRepositoryInterface;
 
 /**
  * @OA\Tag(
@@ -16,6 +17,12 @@ use Illuminate\Support\Facades\Cache;
  */
 class UserPreferenceController extends Controller
 {
+    private $uPreferenceRepository;
+
+    public function __construct(UserPreferenceRepositoryInterface $uPreferenceRepository)
+    {
+        $this->uPreferenceRepository = $uPreferenceRepository;
+    }
     /**
      * @OA\Get(
      *     path="/api/preferences",
@@ -39,7 +46,8 @@ class UserPreferenceController extends Controller
      */
     public function show(Request $request)
     {
-        $preferences = $request->user()->preferences;
+
+        $preferences = $this->uPreferenceRepository->show($request);  
 
         return response()->json($preferences);
     }
@@ -80,21 +88,11 @@ class UserPreferenceController extends Controller
      */
     public function update(Request $request)
     {
-        $validated = $request->validate([
-            'preferred_sources' => 'array|nullable',
-            'preferred_categories' => 'array|nullable',
-            'preferred_authors' => 'array|nullable',
-        ]);
+        
+        $message = $this->uPreferenceRepository->update($request);  
+       
 
-        $user = $request->user();
-
-        // Update or create the user's preferences
-        $user->preferences()->updateOrCreate(
-            ['user_id' => $user->id],
-            $validated
-        );
-
-        return response()->json(['message' => 'Preferences updated successfully']);
+        return response()->json(['message' => $message]);
     }
     /**
      * @OA\Get(
@@ -136,34 +134,8 @@ class UserPreferenceController extends Controller
      */
     public function personalizedFeed(Request $request)
     {
-        $user = $request->user();
-        
-        // Cache the personalized feed for this user for 60 minutes
-        $cacheKey = 'personalized_feed_' . $user->id;
-        $personalizedArticles = Cache::remember($cacheKey, 60, function () use ($user) {
-            $preferences = $user->preferences;
-
-            if (!$preferences) {
-                return []; // Return an empty array or handle as needed
-            }
-
-            // Fetch articles based on user's preferences
-            $articlesQuery = Article::query();
-
-            if ($preferences->preferred_sources && count($preferences->preferred_sources) > 0) {
-                $articlesQuery->whereIn('source', $preferences->preferred_sources);
-            }
-            
-            if ($preferences->preferred_categories && count($preferences->preferred_categories) > 0) {
-                $articlesQuery->whereIn('category', $preferences->preferred_categories);
-            }
-            
-            if ($preferences->preferred_authors && count($preferences->preferred_authors) > 0) {
-                $articlesQuery->whereIn('author', $preferences->preferred_authors);
-            }
-
-            return $articlesQuery->orderBy('published_at', 'desc')->paginate(10);
-        });
+        $personalizedArticles = $this->uPreferenceRepository->personalizedFeed($request);
+       
 
         // Return the response outside the cache closure
         if (empty($personalizedArticles)) {
