@@ -7,7 +7,7 @@ use OpenApi\Annotations as OA;
  * @OA\Info(
  *     version="1.0",
  *     title="API Docs",
- *     description="Admin API Documentation"
+ *     description="News Aggregator APIs"
  *   )
  *  @OA\SecurityScheme(
  *     securityScheme="sanctum",
